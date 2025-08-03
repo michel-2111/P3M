@@ -32,15 +32,16 @@ export async function PATCH(
     }
 
     export async function DELETE(
-        request: Request, { params }: { params: { logId: string } })
-    {
+    request: Request,
+    { params }: { params: { logId: string } }
+        ) {
     const session = await getServerSession(authOptions);
     if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
     try {
         const logId = parseInt(params.logId, 10);
         await prisma.logbookEntry.delete({
-        where: { id: logId },
+            where: { id: logId },
         });
         return NextResponse.json({ message: "Entri berhasil dihapus." });
     } catch (error) {
