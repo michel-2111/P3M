@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma";
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
     ) {
     const session = await getServerSession(authOptions);
     const currentUser = (session?.user as any);
@@ -14,7 +14,8 @@ export async function PATCH(
         return new NextResponse(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
     }
 
-    const proposalId = parseInt(params.id, 10);
+    const resolvedParams = await params;
+    const proposalId = parseInt(resolvedParams.id, 10);
 
     try {
         const body = await request.json();

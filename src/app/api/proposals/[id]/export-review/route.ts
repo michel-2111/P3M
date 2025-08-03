@@ -50,7 +50,7 @@ function convertToDetailedCSV(proposal: any, reviews: any[]): string {
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getServerSession(authOptions);
     if (!(session?.user as any)?.peran?.includes('admin_p3m')) {
@@ -58,7 +58,8 @@ export async function GET(
     }
 
     try {
-        const proposalId = parseInt(params.id, 10);
+        const resolvedParams = await params;  // ✅ Await params
+        const proposalId = parseInt(resolvedParams.id, 10);
         
         const proposal = await prisma.proposal.findUnique({
             where: { id: proposalId },

@@ -7,14 +7,15 @@ import { Prisma } from "@prisma/client";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
   if (!session) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const proposalId = parseInt(params.id, 10);
+  const resolvedParams = await params;
+  const proposalId = parseInt(resolvedParams.id, 10);
   const { decision, reviewNotes } = await request.json();
 
   try {

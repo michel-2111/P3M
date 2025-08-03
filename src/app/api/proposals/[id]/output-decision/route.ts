@@ -6,14 +6,15 @@ import prisma from "@/lib/prisma";
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getServerSession(authOptions);
     if (!(session?.user as any)?.peran?.includes('admin_p3m')) {
         return new NextResponse("Unauthorized", { status: 403 });
     }
 
-    const proposalId = parseInt(params.id, 10);
+    const resolvedParams = await params;
+    const proposalId = parseInt(resolvedParams.id, 10);
     const { decision, type }: { decision: 'Lengkap' | 'Tidak Lengkap', type: 'OUTPUT_KEMAJUAN' | 'OUTPUT_AKHIR' } = await request.json();
 
     try {
