@@ -7,14 +7,15 @@ import { Prisma } from "@prisma/client";
 
 export async function POST(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }  // ✅ Add Promise wrapper
 ) {
     const session = await getServerSession(authOptions);
     if (!(session?.user as any)?.peran?.includes('admin_p3m')) {
         return new NextResponse(JSON.stringify({ message: "Akses ditolak" }), { status: 403 });
     }
 
-    const proposalId = parseInt(params.id, 10);
+    const resolvedParams = await params;  // ✅ Await params
+    const proposalId = parseInt(resolvedParams.id, 10);  // ✅ Use resolvedParams.id
     const { reviewerIds, type } = await request.json();
 
     try {
