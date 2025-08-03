@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// --- MODEL-MODEL DATABASE ---
+
+model User {
+  id            String          @id @default(cuid())
+  namaLengkap   String
+  nidnNim       String          @unique
+  password      String
+  peran         Json
+
+  proposalsKetua    Proposal[]      @relation("KetuaProposal")
+  proposalAnggota   ProposalMember[]
+  reviews           Review[]
+  notifications     Notification[]
+}
+
+model Program {
+  id            String     @id @unique
+  namaProgram   String
+  kategori      String     // "Penelitian" atau "Pengabdian"
+  deskripsi     String
+  detailLainnya Json       // Menyimpan dana, TKT, luaran, dll.
+
+  proposals     Proposal[]
+}
+
+model Proposal {
+  id              Int               @id @default(autoincrement())
+  judul           String
+  abstrak         String
+  status          String
+  detailProposal  Json
+  dokumenDiunggah Json?
+
+  progressReportStatus String? // Bisa berisi: SUBMITTED, IN_REVIEW, LENGKAP, TIDAK_LENGKAP
+  finalReportStatus    String? // Bisa berisi: SUBMITTED, IN_REVIEW, LENGKAP, TIDAK_LENGKAP
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  decisionDate DateTime? @map("decision_date")
+
+  date_uploaded DateTime? @map("date_uploaded")
+
+  programId       String
+  program         Program           @relation(fields: [programId], references: [id])
+
+  userIdKetua     String
+  ketua           User              @relation("KetuaProposal", fields: [userIdKetua], references: [id])
+
+  anggotaTim      ProposalMember[]
+  reviews         Review[]
+  logbookEntries  LogbookEntry[]
+}
+
+model ProposalMember {
+  id                Int      @id @default(autoincrement())
+  statusPersetujuan String   // "Menunggu" atau "Disetujui"
+
+  proposalId        Int
+  proposal          Proposal @relation(fields: [proposalId], references: [id])
+
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+
+  @@unique([proposalId, userId]) // Mencegah user yang sama ditambahkan dua kali ke proposal yang sama
+}
+
+model Review {
+  id           Int      @id @default(autoincrement())
+  type         String   // <-- TAMBAHKAN BARIS INI
+  skor         Json?
+  totalSkor    Float?   // <-- TAMBAHKAN BARIS INI
+  catatan      String?
+  rekomendasi  String?
+  proposalId   Int
+  proposal     Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  reviewerId   String
+  reviewer     User     @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+}
+
+model LogbookEntry {
+  id         Int      @id @default(autoincrement())
+  tanggal    DateTime
+  kegiatan   String
+  bukti      Json?
+  proposalId Int
+  proposal   Proposal @relation(fields: [proposalId], references: [id])
+}
+
+model Notification {
+  id           Int      @id @default(autoincrement())
+  pesan        String
+  link         String
+  sudahDibaca  Boolean  @default(false)
+
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model Setting {
+  settingKey   String @id @unique
+  settingValue Json
+}
