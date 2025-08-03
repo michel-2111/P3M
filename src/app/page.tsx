@@ -2,7 +2,7 @@
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import MainApp from "@/components/MainApp";
-import { authOptions } from "./api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { AppState } from "@/types";
 import prisma from "@/lib/prisma";
 
