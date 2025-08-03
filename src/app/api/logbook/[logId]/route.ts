@@ -6,40 +6,42 @@ import prisma from "@/lib/prisma";
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { logId: string } }
-    ) {
+    { params }: { params: Promise<{ logId: string }> }
+) {
     const session = await getServerSession(authOptions);
     if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
     try {
-        const logId = parseInt(params.logId, 10);
+        const resolvedParams = await params;
+        const logId = parseInt(resolvedParams.logId, 10);
         const body = await request.json();
         const { tanggal, kegiatan, bukti } = body;
 
         const updatedEntry = await prisma.logbookEntry.update({
-        where: { id: logId },
-        data: {
-            tanggal: new Date(tanggal),
-            kegiatan,
-            bukti,
-        },
+            where: { id: logId },
+            data: {
+                tanggal: new Date(tanggal),
+                kegiatan,
+                bukti,
+            },
         });
         return NextResponse.json(updatedEntry);
     } catch (error) {
         console.error("LOGBOOK_UPDATE_ERROR", error);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
-    }
+}
 
-    export async function DELETE(
+export async function DELETE(
     request: Request,
-    { params }: { params: { logId: string } }
-        ) {
+    { params }: { params: Promise<{ logId: string }> }
+) {
     const session = await getServerSession(authOptions);
     if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
     try {
-        const logId = parseInt(params.logId, 10);
+        const resolvedParams = await params;
+        const logId = parseInt(resolvedParams.logId, 10);
         await prisma.logbookEntry.delete({
             where: { id: logId },
         });
