@@ -8,102 +8,123 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// --- MODEL-MODEL DATABASE ---
-
 model User {
-  id            String          @id @default(cuid())
-  namaLengkap   String
-  nidnNim       String          @unique
-  password      String
-  peran         Json
+  id              String           @id @default(cuid())
+  namaLengkap     String
+  nidnNim         String           @unique
+  peran           Json
+  password        String
 
-  proposalsKetua    Proposal[]      @relation("KetuaProposal")
-  proposalAnggota   ProposalMember[]
-  reviews           Review[]
-  notifications     Notification[]
+  jurusan           String?
+  program_studi     String?
+  nomor_rekening    String?
+  jabatan_fungsional String?
+  sinta_score       Int?    // Skor biasanya berupa angka (Integer)
+  sinta_id          String?
+
+  notifications   Notification[]
+  proposalsKetua  Proposal[]       @relation("KetuaProposal")
+  proposalAnggota ProposalMember[]
+  reviews         Review[]
 }
 
 model Program {
   id            String     @id @unique
   namaProgram   String
-  kategori      String     // "Penelitian" atau "Pengabdian"
+  kategori      String
   deskripsi     String
-  detailLainnya Json       // Menyimpan dana, TKT, luaran, dll.
-
+  detailLainnya Json
   proposals     Proposal[]
 }
 
 model Proposal {
-  id              Int               @id @default(autoincrement())
-  judul           String
-  abstrak         String
-  status          String
-  detailProposal  Json
-  dokumenDiunggah Json?
+  id                   Int              @id @default(autoincrement())
+  judul                String
+  abstrak              String
+  status               String
+  detailProposal       Json
+  dokumenDiunggah      Json?
+  programId            String
+  userIdKetua          String
+  finalReportStatus    String?
+  progressReportStatus String?
+  createdAt            DateTime         @default(now()) @map("created_at")
+  date_uploaded        DateTime?        @map("date_uploaded")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+  decisionDate         DateTime?        @map("decision_date")
+  logbookEntries       LogbookEntry[]
+  program              Program          @relation(fields: [programId], references: [id])
+  ketua                User             @relation("KetuaProposal", fields: [userIdKetua], references: [id])
+  anggotaTim           ProposalMember[]
+  reviews              Review[]
+}
 
-  progressReportStatus String? // Bisa berisi: SUBMITTED, IN_REVIEW, LENGKAP, TIDAK_LENGKAP
-  finalReportStatus    String? // Bisa berisi: SUBMITTED, IN_REVIEW, LENGKAP, TIDAK_LENGKAP
+model Penelitian {
+  id            Int      @id @default(autoincrement())
+  judul         String?
+  skema         String?  @db.VarChar(100)
+  nipKetua      String?  @map("nip_ketua") @db.VarChar(50)
+  jumlahMember  Int?     @map("jumlah_member")
+  jurusan       String?  @db.VarChar(50)
+  status        String?  @db.VarChar(50)
+  tanggalDibuat DateTime? @map("tanggal_dibuat") @db.Date
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  decisionDate DateTime? @map("decision_date")
+  @@map("penelitian")
+}
 
-  date_uploaded DateTime? @map("date_uploaded")
+model Pengabdian {
+  id            Int      @id @default(autoincrement())
+  judul         String?
+  skema         String?  @db.VarChar(100)
+  nipKetua      String?  @map("nip_ketua") @db.VarChar(50)
+  jumlahMember  Int?     @map("jumlah_member")
+  jurusan       String?  @db.VarChar(50)
+  status        String?  @db.VarChar(50)
+  tanggalDibuat DateTime? @map("tanggal_dibuat") @db.Date
 
-  programId       String
-  program         Program           @relation(fields: [programId], references: [id])
-
-  userIdKetua     String
-  ketua           User              @relation("KetuaProposal", fields: [userIdKetua], references: [id])
-
-  anggotaTim      ProposalMember[]
-  reviews         Review[]
-  logbookEntries  LogbookEntry[]
+  @@map("pengabdian")
 }
 
 model ProposalMember {
   id                Int      @id @default(autoincrement())
-  statusPersetujuan String   // "Menunggu" atau "Disetujui"
-
+  statusPersetujuan String
   proposalId        Int
-  proposal          Proposal @relation(fields: [proposalId], references: [id])
-
   userId            String
+  proposal          Proposal @relation(fields: [proposalId], references: [id])
   user              User     @relation(fields: [userId], references: [id])
 
-  @@unique([proposalId, userId]) // Mencegah user yang sama ditambahkan dua kali ke proposal yang sama
+  @@unique([proposalId, userId])
 }
 
 model Review {
-  id           Int      @id @default(autoincrement())
-  type         String   // <-- TAMBAHKAN BARIS INI
-  skor         Json?
-  totalSkor    Float?   // <-- TAMBAHKAN BARIS INI
-  catatan      String?
-  rekomendasi  String?
-  proposalId   Int
-  proposal     Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
-  reviewerId   String
-  reviewer     User     @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  id          Int      @id @default(autoincrement())
+  skor        Json?
+  catatan     String?
+  rekomendasi String?
+  proposalId  Int
+  reviewerId  String
+  type        String
+  totalSkor   Float?
+  proposal    Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  reviewer    User     @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
 }
 
 model LogbookEntry {
   id         Int      @id @default(autoincrement())
   tanggal    DateTime
   kegiatan   String
-  bukti      Json?
   proposalId Int
+  bukti      Json?
   proposal   Proposal @relation(fields: [proposalId], references: [id])
 }
 
 model Notification {
-  id           Int      @id @default(autoincrement())
-  pesan        String
-  link         String
-  sudahDibaca  Boolean  @default(false)
-
-  userId       String
-  user         User     @relation(fields: [userId], references: [id])
+  id          Int     @id @default(autoincrement())
+  pesan       String
+  link        String
+  sudahDibaca Boolean @default(false)
+  userId      String
+  user        User    @relation(fields: [userId], references: [id])
 }
 
 model Setting {

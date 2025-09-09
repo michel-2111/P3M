@@ -5,6 +5,7 @@ import { Proposal, Review } from "@/types";
 import React from "react";
 import TitleApprovalTasks from "./TitleApprovalTasks";
 import { CheckSquare, Eye, UserCheck, Download } from "lucide-react";
+import { ProposalStatsChart } from "./ProposalStatsChart";
 
 interface AdminDashboardProps {
     proposals: Proposal[];
@@ -38,11 +39,10 @@ const AdminDashboard = ({
     return (
         <div className="space-y-6">
             <TitleApprovalTasks proposals={proposals} onDecision={onTitleDecision} onDetailClick={onDetailClick} />
-
+            <ProposalStatsChart />
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold text-gray-800">Manajemen Proposal Masuk</h2>
-                    {/* Tombol export global sudah dihapus */}
                 </div>
                 
                 <div className="overflow-x-auto">

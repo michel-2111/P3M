@@ -6,6 +6,8 @@ import { signOut } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import { LogOut, Bell } from 'lucide-react';
 import { AppState, FinalDecision, Notification, Proposal, Review, ReviewType} from '@/types';
+import { ProfileModal } from "./modals/ProfileModal";
+import * as Dialog from "@radix-ui/react-dialog";
 import AdminDashboard from './dashboard/AdminDashboard';
 import DosenMahasiswaDashboard from './dashboard/DosenMahasiswaDashboard';
 import ApprovalTasks from './dashboard/ApprovalTasks';
@@ -30,7 +32,6 @@ import DocumentManager from './dashboard/DocumentManager';
 import ProposalDetailManager from './dashboard/ProposalDetailManager';
 import AssessmentCriteriaManager from './dashboard/AssessmentCriteriaManager';
 import OutputReviewResultModal from './modals/OutputReviewResultModal';
-
 
 const MainApp = ({ initialState }: { initialState: AppState }) => {
     const [appState, setAppState] = useState<AppState>(initialState);
@@ -573,7 +574,14 @@ const handleFinalReportSubmit = async (proposalId: number, data: any) => {
                                 </div>
                             </div>
                         )}
-                        <span className="font-semibold text-sm text-gray-800">{currentUser.namaLengkap}</span>
+                        <Dialog.Root>
+                            <Dialog.Trigger asChild>
+                                <button className="font-semibold text-sm text-gray-800 hover:text-blue-600 focus:outline-none cursor-pointer">
+                                    {currentUser.namaLengkap}
+                                </button>
+                            </Dialog.Trigger>
+                            <ProfileModal />
+                        </Dialog.Root>
                         <button onClick={handleLogout} className="flex items-center text-sm text-red-500 hover:text-red-700 font-semibold">
                             <LogOut className="w-4 h-4 mr-1" />Logout
                         </button>
