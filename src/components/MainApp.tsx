@@ -608,7 +608,7 @@ const handleFinalReportSubmit = async (proposalId: number, data: any) => {
                         {currentUser.peran && currentUser.peran.includes('admin_p3m') && (
                             <button className={`py-3 px-2 font-semibold ${activeTab === 'assessment_criteria_settings' ? 'border-b-4 border-yellow-400' : ''}`} onClick={() => setActiveTab('assessment_criteria_settings')}>Kriteria Penilaian</button>
                         )}
-                        {currentUser.peran && currentUser.peran.includes('reviewer_penelitian') || currentUser.peran.includes('reviewer_pengabdian') && (
+                        {currentUser.peran && (currentUser.peran.includes('reviewer_penelitian') || currentUser.peran.includes('reviewer_pengabdian')) && (
                             <button className={`py-3 px-2 font-semibold ${activeTab === 'review_tasks' ? 'border-b-4 border-yellow-400' : ''}`} onClick={() => setActiveTab('review_tasks')}>Tugas Review</button>
                         )}
                         {currentUser.peran && currentUser.peran.includes('admin_p3m') && (
